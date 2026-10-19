@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Renhold Business Pro</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f3;color:#183b34;font-family:Arial,sans-serif;padding:18px}
+main{max-width:600px;margin:auto}
+header{background:#173e36;color:white;padding:25px;border-radius:16px}
+h1{font-size:26px;margin:0}
+.card{background:white;padding:20px;margin-top:16px;border-radius:15px}
+label{display:block;font-weight:bold;margin:16px 0 7px}
+input,select{width:100%;padding:13px;border:1px solid #cbd5d1;border-radius:9px;font-size:16px}
+.result{background:#e5f1e9;padding:17px;border-radius:12px}
+.big{font-size:30px;font-weight:bold}
+.line{display:flex;justify-content:space-between;gap:10px;margin:14px 0}
+.good{color:#187345}.bad{color:#bc422f}
+button{background:#173e36;color:white;border:0;padding:14px;width:100%;border-radius:10px;font-size:16px}
+small{color:#64756d}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Renhold Business Pro</h1>
+<p>Smart priskalkulator for renholdsbedrifter</p>
+</header>
+<div class="card">
+<label>Type renhold</label>
+<select id="service">
+<option value="55">Visningsvask</option>
+<option value="85">Flyttevask</option>
+<option value="75">Byggvask</option>
+<option value="40">Kontorvask</option>
+<option value="50">Trappevask</option>
+</select>
+<label>Areal (m²)</label>
+<input id="area" type="number" value="100" min="0">
+<label>Pris per m² (kr eks. mva.)</label>
+<input id="rate" type="number" value="55" min="0">
+<label>Prismodell</label>
+<select id="mode">
+<option value="sqm">Pris per m²</option>
+<option value="fixed">Avtalt fastpris</option>
+</select>
+<div id="fixedBox" hidden>
+<label>Avtalt pris (kr eks. mva.)</label>
+<input id="fixed" type="number" value="5500">
+</div>
+<label>Arbeidstimer per 100 m²</label>
+<input id="hours" type="number" value="10">
+<label>Samlet arbeidskostnad per time (kr)</label>
+<input id="labor" type="number" value="340">
+<label>Andre kostnader (kr)</label>
+<input id="extra" type="number" value="600">
+<label>Ønsket fortjenestemargin (%)</label>
+<input id="margin" type="number" value="30" min="0" max="90">
+</div>
+<div class="card">
+<div class="result">
+<small>Tilbud inkl. 25 % mva.</small>
+<div class="big" id="total"></div>
+</div>
+<div class="line"><span>Pris eks. mva.</span><b id="net"></b></div>
+<div class="line"><span>Arbeidstimer</span><b id="work"></b></div>
+<div class="line"><span>Totale kostnader</span><b id="cost"></b></div>
+<div class="line"><span>Estimert fortjeneste</span><b id="profit"></b></div>
+<div class="line"><span>Anbefalt minstepris for ønsket margin</span><b id="minimum"></b></div>
+<p id="status"></p>
+<button onclick="window.print()">Skriv ut / Lagre som PDF</button>
+</div>
+<p><small>Testversjon. Alle standardpriser er eksempler. Arbeidskostnader og avgifter må tilpasses virksomheten. Fortjeneste er beregnet før skatt.</small></p>
+</main>
+<script>
+const el=id=>document.getElementById(id);
+const num=id=>Math.max(0,Number(el(id).value)||0);
+const kr=v=>Math.round(v).toLocaleString("nb-NO")+" kr";
+function calculate(){
+const area=num("area");
+const hours=area*num("hours")/100;
+const cost=hours*num("labor")+num("extra");
+const net=el("mode").value==="fixed"?num("fixed"):area*num("rate");
+const margin=Math.min(90,num("margin"))/100;
+const minimum=cost/(1-margin);
+const profit=net-cost;
+el("fixedBox").hidden=el("mode").value!=="fixed";
+el("total").textContent=kr(net*1.25);
+el("net").textContent=kr(net);
+el("work").textContent=hours.toFixed(1)+" timer";
+el("cost").textContent=kr(cost);
+el("profit").textContent=kr(profit);
+el("minimum").textContent=kr(minimum);
+el("status").className=profit<0?"bad":net<minimum?"bad":"good";
+el("status").textContent=profit<0?"Advarsel: Tilbudet gir estimert tap.":net<minimum?"Fortjenesten er under ønsket margin.":"Tilbudet oppfyller ønsket margin.";
+}
+document.querySelectorAll("input,select").forEach(x=>x.addEventListener("input",calculate));
+el("service").addEventListener("change",()=>{
+el("rate").value=el("service").value;
+calculate();
+});
+calculate();
+</script>
+</body>
+</html>
